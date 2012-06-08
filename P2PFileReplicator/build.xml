@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This is a P2P file replication application
+Developed by Mezbah Uddin
+-->
+<project name="DS9P2P-project" basedir="." default="dist" >
+    <property name="prjroot" value="${basedir}" />
+
+    <!-- Give user a chance to override without editing this file 
+      (and without typing -D each time it compiles it) -->   
+    <property name="lib" value="lib"/>
+    <property name="src" value="src"/>
+    <property name="doc" value="doc"/>
+    <property name="dist" value="dist"/>
+    <property name="classes" value="classes"/>
+    <property name="debug" value="on"/>
+    <property name="Main-class" value="com.mezbah.P2PFileReplicatorApplication"/>
+    <path id="classpath">
+        <fileset dir="${lib}">
+        <include name="*.zip"/>
+        <include name="*.jar"/>
+    	</fileset>
+    </path>
+
+    <!-- build the ant tasks that we need and install them into the correct directory -->
+    <target name="prepare">
+        <tstamp/>
+        <mkdir dir="${classes}"/>
+        <mkdir dir="${dist}"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <javac destdir="${classes}" srcdir="${src}" debug="${debug}" includeAntRuntime="false" source="1.5" target="1.5">
+            <classpath>
+                <path refid="classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+  <target name="source-zip" depends="clean,prepare" description="Creates source zip file">
+    <zip destfile="${dist}/P2PFileReplicator.zip">
+      <zipfileset dir="${basedir}" prefix="P2PFileReplicator-src-1.0">
+        <exclude name="**/.*" />
+        <exclude name="dist/**" />
+        <exclude name="**/classes/**" />
+        <exclude name="jnlp/**" />
+        <exclude name="rpm/**" />
+        <exclude name="tmp/**" />
+        <exclude name="**/.*/**" />
+      </zipfileset>
+    </zip>
+  </target>
+
+  <target name="source-tgz" depends="clean,prepare" description="Creates source tar.gz file">
+    <delete file="${dist}/P2PFileReplicator-1.0.tar.gz" />
+
+    <tar destfile="${dist}/P2PFileReplicator-1.0.tar.gz" compression="gzip" longfile="gnu">
+      <tarfileset dir="${basedir}" prefix="P2PFileReplicator-src-1.0">
+        <exclude name="**/.*" />
+        <exclude name="dist/**" />
+        <exclude name="**/classes/**" />
+        <exclude name="jnlp/**" />
+        <exclude name="tmp/**" />
+        <exclude name="rpm/**" />
+        <exclude name="**/.*/**" />
+      </tarfileset>
+    </tar>
+  </target>
+
+    <target name="jar" depends="clean, compile">
+        <jar jarfile="${dist}/P2PFileReplicator.jar">
+            <fileset dir="${classes}"/>
+            <manifest>
+                <attribute name="Main-Class" value="${Main-class}"/>
+                <attribute name="Class-Path" value="lib/FreePastry-2.1.zip lib/xmlpull_1_1_3_4a.jar lib/xpp3-1.1.3.4d_b2.jar"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" description="Running a P2P client" depends="dist">
+        <java classname="${Main-class}" failonerror="yes" fork="yes">
+         <classpath>
+           <path refid="classpath"/>
+           <path location="${dist}/P2PFileReplicator.jar"/>
+         </classpath>
+         <arg value="9001" />
+         <arg value="193.11.182.48"/> 
+         <arg value="9001" />
+         <!--<arg value="-usedirect" />-->
+         <arg value="10" />
+         </java>
+    </target>
+
+    <target name="clean" description="Removes all files produced by build">
+        <delete dir="${classes}"/>
+        <delete dir="${dist}"/>
+        <delete dir="${doc}"/>
+    </target>
+    
+  <!-- meta targets -->
+  
+  <target name="all" depends="clean, jar" description="Clean build of core targets" />
+
+  <target name="dist" depends="clean, source-zip, source-tgz, jar" description="Clean build of all dist targets"/>
+    
+</project>
